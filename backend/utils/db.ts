@@ -1,8 +1,9 @@
 import { Sequelize, Options } from 'sequelize';
 import { MYSQL_URI } from './config';
+import logger from './logger';
 
 if (!MYSQL_URI) {
-    console.error('FATAL ERROR: MYSQL_URI environment variable is not defined.');
+    logger.error('FATAL ERROR: MYSQL_URI environment variable is not defined.');
     process.exit(1);
 }
 
@@ -25,9 +26,9 @@ const connectToDatabase = async () => {
     try {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
         await sequelize.authenticate();
-        console.log('Database connection has been established successfully.');
+        logger.info('Database connection has been established successfully.');
     } catch (error: unknown) {
-        console.error('Unable to connect to the database:', error);
+        logger.error('Unable to connect to the database:', error);
         throw error;
     }
 };
