@@ -1,12 +1,14 @@
 import { app, setupApp } from './app';
+import { connectToDatabase } from './utils/db';
 import { PORT } from './utils/config';
 
-const start = () => {
+const start = async () => {
+  await connectToDatabase();
   setupApp();
   app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
   });
 };
 
-start();
+void start();
 
