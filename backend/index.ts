@@ -1,14 +1,12 @@
-import express from 'express';
-const app = express();
-app.use(express.json());
+import { app, setupApp } from './app';
+import { PORT } from './utils/config';
 
-const PORT = 3000;
+const start = () => {
+  setupApp();
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+  });
+};
 
-app.get('/ping', (_req, res) => {
-  console.log('someone pinged here');
-  res.send('pong');
-});
+start();
 
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
