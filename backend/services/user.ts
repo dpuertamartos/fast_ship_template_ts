@@ -1,6 +1,6 @@
 import bcrypt from 'bcrypt';
 import logger from '../utils/logger';
-import { DOMINIO, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET } from '../utils/config';
+import { DOMINIO, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, JWT_SECRET, TOKEN_EXPIRATION } from '../utils/config';
 import { User, Role, UserRole } from '../models';
 import axios from 'axios';
 import jwt from 'jsonwebtoken';
@@ -124,7 +124,58 @@ const handleGoogleLogin = async (code: string, redirectUri: string) => {
     }
 };
 
+interface LoginResponse {
+  token: string;
+  email: string;
+  roles: string[];
+}
+
+const login = async (email: string, password: string): Promise<LoginResponse> => {
+  const user = await User.findOne({ 
+    where: { email },
+    include: [{
+      model: Role,
+      attributes: ['name'],
+      through: { attributes: [] }
+    }]
+  }); 
+
+  if (!user) {
+    throw new Error('User not found');
+  }
+
+  const passwordHash = user.get('passwordHash') as string | null;
+
+  if (!passwordHash) {
+    throw new Error('Password login not available for this user. Try Google Sign-In.');
+  }
+
+  const passwordCorrect: boolean = await bcrypt.compare(password, passwordHash);
+  
+  if (!passwordCorrect) {
+    throw new Error('Invalid email or password');
+  }
+
+  const roles = user.get('roles') as Role[] || [];
+  const roleNames: string[] = roles.map((role: Role) => role.get('name') as string);
+
+  const userForToken = {
+    email: user.get('email') as string,
+    id: user.get('id') as number,
+    roles: roleNames
+  };
+  
+  const token: string = jwt.sign(userForToken, JWT_SECRET, { expiresIn: TOKEN_EXPIRATION });
+
+  return {
+    token,
+    email: user.get('email') as string,
+    roles: roleNames
+  };
+};
+
 export {
   createUser,
-  handleGoogleLogin
+  handleGoogleLogin,
+  login
 };

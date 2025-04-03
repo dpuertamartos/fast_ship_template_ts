@@ -35,7 +35,7 @@ router.post('/register', async (req: Request, res: Response) => {
   }
 });
 
-router.post('/google_login', async (req, res) => {
+router.post('/google_login', async (req: Request, res: Response) => {
     const { code, redirectUri } = req.body as { code: string; redirectUri: string };
   
     try {
@@ -61,6 +61,40 @@ router.post('/google_login', async (req, res) => {
         error: 'Google authentication failed'
       });
     }
+});
+
+router.post('/login', async (req: Request, res: Response) => {
+  const { email, password } = req.body as { email: string; password: string };
+  if (!email || !password) {
+    res.status(400).json({
+      error: 'email and password are required'
+    });
+  }
+
+  try {
+    const loginResponse = await userService.login(email, password);
+    res.status(200).json(loginResponse);
+  } catch (error: unknown) {
+    logger.error('Error during login:', error);
+    
+    if (error instanceof Error && error.message === 'User not found') {
+      res.status(404).json({
+        error: 'User not found'
+      });
+    } else if (error instanceof Error && error.message === 'Invalid email or password') {
+      res.status(401).json({
+        error: 'Invalid email or password'
+      });
+    } else if (error instanceof Error && error.message.includes('Authorization code expired')) {
+      res.status(401).json({
+        error: error.message
+      });
+    } else {
+      res.status(500).json({
+        error: 'Internal server error'
+      });
+    }
+  }
 });
 
 export default router;
