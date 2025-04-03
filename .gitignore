@@ -2,3 +2,5 @@ node_modules
 build
 old_backend
 .env
+report.html
+report.json
