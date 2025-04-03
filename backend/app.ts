@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import logger from './utils/logger';
 import basicMiddleware from './utils/basicMiddleware';
+import userRouter from './controller/user';
 const app = express();
 
 const setupApp = () => {
@@ -9,10 +10,11 @@ const setupApp = () => {
   app.use(cors());
   app.use(express.json());
   app.use(basicMiddleware.requestLogger);
-  app.get('/ping', (_req, res) => {
-    logger.info('someone pinged here');
-    res.send('pong!');
+  app.get('/healthcheck', (_req, res) => {
+    logger.info('healthcheck requested');
+    res.send('alive!');
   });
+  app.use('/api/users', userRouter);
   app.use(basicMiddleware.unknownEndpoint);
   app.use(basicMiddleware.errorHandler as express.ErrorRequestHandler);
 };

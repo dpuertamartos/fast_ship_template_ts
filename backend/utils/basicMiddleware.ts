@@ -42,21 +42,10 @@ const errorHandler = (error: Error, _req: Request, res: Response, next: NextFunc
   return;
 };
 
-// const modelsMiddleware = (Models: any) => {
-//   // returns an actual middleware function
-//   return (req: Request, res: Response, next: NextFunction) => {
-//     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-//     req.models = Models;
-    
-//     next();
-//   };
-// };
-
 const basicMiddleware = {
     requestLogger,
     unknownEndpoint,
     errorHandler,
-    // modelsMiddleware
 };
 
 export default basicMiddleware;
