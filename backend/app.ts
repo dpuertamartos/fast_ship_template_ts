@@ -1,8 +1,10 @@
 import express from 'express';
 import cors from 'cors';
 import logger from './utils/logger';
+import { BASE_URI } from './utils/config';
 import basicMiddleware from './utils/basicMiddleware';
 import userRouter from './controller/user';
+
 const app = express();
 
 const setupApp = () => {
@@ -14,7 +16,7 @@ const setupApp = () => {
     logger.info('healthcheck requested');
     res.send('alive!');
   });
-  app.use('/api/users', userRouter);
+  app.use(`${BASE_URI}/user`, userRouter);
   app.use(basicMiddleware.unknownEndpoint);
   app.use(basicMiddleware.errorHandler as express.ErrorRequestHandler);
 };

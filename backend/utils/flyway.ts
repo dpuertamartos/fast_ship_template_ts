@@ -4,7 +4,7 @@ import { FlywayConfig } from 'node-flyway/dist/types/types';
 import logger from './logger';
 
 const obtainFlywayConfig = (maintainExistingTables: boolean): FlywayConfig => {
-  const mysqlUrlMatch = MYSQL_URI!.match(/mysql:\/\/([^:]+):([^@]+)@([^:]+):(\d+)\/(.+)/);
+  const mysqlUrlMatch = MYSQL_URI.match(/mysql:\/\/([^:]+):([^@]+)@([^:]+):(\d+)\/(.+)/);
   
   if (!mysqlUrlMatch) {
     logger.error('Invalid MySQL URI format');
