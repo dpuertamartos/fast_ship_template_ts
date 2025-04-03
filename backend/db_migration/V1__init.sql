@@ -2,6 +2,7 @@ CREATE TABLE user (
     id BIGINT UNSIGNED AUTO_INCREMENT,
     email VARCHAR(255) NOT NULL UNIQUE,
     password_hash VARCHAR(255),
+    token_version INT DEFAULT 0,
     created_at DATETIME COMMENT 'UTC time',
     updated_at DATETIME COMMENT 'UTC time',
     version INT DEFAULT 0,

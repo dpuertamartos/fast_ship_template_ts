@@ -7,6 +7,8 @@ const BASE_URI: string = '/api';
 const GOOGLE_CLIENT_ID: string = process.env.GOOGLE_CLIENT_ID!;
 const GOOGLE_CLIENT_SECRET: string = process.env.GOOGLE_CLIENT_SECRET!;
 const DOMINIO: string = process.env.DOMINIO || '';
+const JWT_SECRET: string = process.env.JWT_SECRET!;
+const TOKEN_EXPIRATION: number = parseInt(process.env.TOKEN_EXPIRATION || '24 * 60 * 60 * 30');
 
 export {
     PORT, 
@@ -15,6 +17,8 @@ export {
     BASE_URI,
     GOOGLE_CLIENT_ID,
     GOOGLE_CLIENT_SECRET,
-    DOMINIO
+    DOMINIO,
+    JWT_SECRET,
+    TOKEN_EXPIRATION
 };
 
