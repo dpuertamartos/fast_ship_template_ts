@@ -48,7 +48,18 @@ const createUser = async (email: string, password: string | undefined): Promise<
 
 };
 
-const handleGoogleLogin = async (code: string, redirectUri: string) => {
+const getUserWithRoles = async (email: string): Promise<User | null> => {
+  return User.findOne({ 
+    where: { email },
+    include: [{
+      model: Role,
+      attributes: ['name'],
+      through: { attributes: [] }
+    }]
+  });
+};
+
+const handleGoogleLogin = async (code: string, redirectUri: string): Promise<LoginResponse> => {
     const ALLOWED_REDIRECT_URIS = [
       `http://${DOMINIO}/auth/google/callback`,
       `https://${DOMINIO}/auth/google/callback`,
@@ -89,23 +100,18 @@ const handleGoogleLogin = async (code: string, redirectUri: string) => {
       const { email } = userInfo as { email: string };
   
       // Find or create user
-      let user: User | null = await User.findOne({
-        where: { email },
-        include: [{
-          model: UserRole,
-          attributes: ['user_id', 'role_id'],
-          include: [{
-            model: Role,
-            attributes: ['name']
-          }]
-        }]
-      });
+      let user: User | null = await getUserWithRoles(email);
   
       if (!user) {
-        user = await createUser(email, undefined);
+        await createUser(email, undefined);
+        user = await getUserWithRoles(email);
+        
+        if (!user) {
+          throw new Error('Failed to create user');
+        }
       }
   
-      return user;
+      return generateLoginResponse(user);
   
     } catch (error: unknown) {
       logger.error('Google OAuth error:', {
@@ -130,15 +136,27 @@ interface LoginResponse {
   roles: string[];
 }
 
+const generateLoginResponse = (user: User): LoginResponse => {
+  const roles = user.get('roles') as Role[] || [];
+  const roleNames: string[] = roles.map((role: Role) => role.get('name') as string);
+
+  const userForToken = {
+    email: user.get('email') as string,
+    id: user.get('id') as number,
+    roles: roleNames
+  };
+  
+  const token: string = jwt.sign(userForToken, JWT_SECRET, { expiresIn: TOKEN_EXPIRATION });
+
+  return {
+    token,
+    email: user.get('email') as string,
+    roles: roleNames
+  };
+};
+
 const login = async (email: string, password: string): Promise<LoginResponse> => {
-  const user = await User.findOne({ 
-    where: { email },
-    include: [{
-      model: Role,
-      attributes: ['name'],
-      through: { attributes: [] }
-    }]
-  }); 
+  const user = await getUserWithRoles(email);
 
   if (!user) {
     throw new Error('User not found');
@@ -156,22 +174,7 @@ const login = async (email: string, password: string): Promise<LoginResponse> =>
     throw new Error('Invalid email or password');
   }
 
-  const roles = user.get('roles') as Role[] || [];
-  const roleNames: string[] = roles.map((role: Role) => role.get('name') as string);
-
-  const userForToken = {
-    email: user.get('email') as string,
-    id: user.get('id') as number,
-    roles: roleNames
-  };
-  
-  const token: string = jwt.sign(userForToken, JWT_SECRET, { expiresIn: TOKEN_EXPIRATION });
-
-  return {
-    token,
-    email: user.get('email') as string,
-    roles: roleNames
-  };
+  return generateLoginResponse(user);
 };
 
 export {

@@ -1,7 +1,5 @@
 import logger from '../utils/logger';
-import { JWT_SECRET, TOKEN_EXPIRATION } from '../utils/config';
 import { Request, Response, Router } from 'express';
-import jwt from 'jsonwebtoken';
 import * as userService from '../services/user';
 import { User } from '../models';
 
@@ -16,7 +14,6 @@ router.post('/register', async (req: Request, res: Response) => {
   }
 
   try {
-    // Check if the email is already registered
     const existingUser = await User.findOne({ where: { email } });
     if (existingUser) {
       res.status(400).json({ error: 'Email already registered' });
@@ -39,22 +36,8 @@ router.post('/google_login', async (req: Request, res: Response) => {
     const { code, redirectUri } = req.body as { code: string; redirectUri: string };
   
     try {
-      const user = await userService.handleGoogleLogin(code, redirectUri);
-  
-      const userForToken = {
-        email: user.get('email'),
-        id: user.get('id'),
-        //roles: user.get('roles'), // TODO: Add roles to user token
-        token_version: user.get('token_version')
-      };
-  
-      const token = jwt.sign(userForToken, JWT_SECRET, { expiresIn: TOKEN_EXPIRATION });
-
-      res.status(200).send({
-        token,
-        email: user.get('email')
-        //roles: user.roles // TODO: Add roles to response
-      });
+      const loginResponse = await userService.handleGoogleLogin(code, redirectUri);
+      res.status(200).json(loginResponse);
     } catch (error) {
       logger.error('Error during Google login:', error);
       res.status(401).json({
@@ -76,7 +59,7 @@ router.post('/login', async (req: Request, res: Response) => {
     res.status(200).json(loginResponse);
   } catch (error: unknown) {
     logger.error('Error during login:', error);
-    
+
     if (error instanceof Error && error.message === 'User not found') {
       res.status(404).json({
         error: 'User not found'
