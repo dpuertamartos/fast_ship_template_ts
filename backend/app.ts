@@ -8,7 +8,6 @@ import userRouter from './controller/user';
 const app = express();
 
 const setupApp = () => {
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-call
   app.use(cors());
   app.use(express.json());
   app.use(basicMiddleware.requestLogger);
@@ -18,7 +17,7 @@ const setupApp = () => {
   });
   app.use(`${BASE_URI}/user`, userRouter);
   app.use(basicMiddleware.unknownEndpoint);
-  app.use(basicMiddleware.errorHandler as express.ErrorRequestHandler);
+  app.use(basicMiddleware.errorHandler as unknown as express.ErrorRequestHandler);
 };
 
 export { app, setupApp };

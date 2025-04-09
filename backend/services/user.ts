@@ -4,6 +4,7 @@ import { DOMINIO, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, JWT_SECRET, TOKEN_EXPI
 import { User, Role, UserRole } from '../models';
 import axios from 'axios';
 import jwt from 'jsonwebtoken';
+import { LoginResponse } from '../types/services';
 
 const generatePasswordHash = async (password: string): Promise<string> => {
   try {
@@ -129,12 +130,6 @@ const handleGoogleLogin = async (code: string, redirectUri: string): Promise<Log
       throw error;
     }
 };
-
-interface LoginResponse {
-  token: string;
-  email: string;
-  roles: string[];
-}
 
 const generateLoginResponse = (user: User): LoginResponse => {
   const roles = user.get('roles') as Role[] || [];
